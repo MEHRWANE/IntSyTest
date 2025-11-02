@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IntSy Configurator</title>
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap" rel="stylesheet">
+  
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    #logo {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      width: 200px;
+      z-index: 10000;
+    }
+
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      flex-direction: column;
+    }
+
+    #loadingVideo, #loadingImage {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #loadingImage {
+      display: none;
+    }
+
+    #queueStatus {
+      position: fixed;
+      top: 75%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 26px;
+      z-index: 1001;
+      display: none;
+    }
+
+    #loadingState {
+      position: fixed;
+      text-align: center;
+      top: 80%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 22px;
+      z-index: 1001;
+      display: none;
+    }
+
+    #passwordScreen {
+      position: fixed;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      top: 90%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      justify-content: center;
+      z-index: 1002;
+    }
+
+    #passwordForm {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  padding: 14px 20px;
+  border-radius: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+#passwordForm input {
+  padding: 10px 14px;
+  font-size: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  width: 180px;
+  outline: none;
+}
+
+#passwordForm input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+#passwordForm button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #4e9cff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+#passwordForm button:hover {
+  background-color: #327dcd;
+}
+
+    iframe {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+	  padding: 0;
+	  margin: 0;
+      border: none;
+	  overflow: hidden;
+      z-index: 1;
+    }
+
+   /* 🔹 End session overlay */
+    #disconnectedOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(180deg, #f9f9f9 0%, #eaeaea 100%);
+      color: #444;
+      text-align: center;
+      opacity: 1;
+      transition: none;
+    }
+
+    #disconnectedOverlay.visible {
+      display: flex;
+      opacity: 1;
+    }
+
+    .message {
+      margin-bottom: 30px;
+    }
+
+    .message .line1 {
+      font-size: clamp(18px, 3vw, 30px);
+      font-weight: 300;
+	  color: #666;
+      margin-bottom: 10px;
+    }
+
+    .message .line2 {
+      font-size: clamp(18px, 3vw, 30px);
+      font-weight: 300;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    #contactButton {
+	  margin-top: .5rem;
+	  margin-bottom: -2rem;
+	  margin-right: auto;
+	  margin-left: auto;
+	  align-items: center;
+	  justify-content: center;
+      padding: 0.8rem 1.8rem;
+      font-size: clamp(16px, 1.2vw, 22px);
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(to right, #8ccf4d, #36b4e5);
+      color: white;
+      cursor: pointer;
+      font-weight: 300;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #contactButton:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    #contactButton:active {
+      transform: scale(0.97);
+    }
+
+    .divider {
+      width: 80%;
+      max-width: 1200px;
+      border: none;
+      border-top: 1px solid #ccc;
+      margin: 40px 0;
+    }
+
+    .logo {
+      text-align: center;
+    }
+
+    .logo img {
+      width: clamp(160px, 25vw, 260px);
+      height: auto;
+      display: block;
+      margin: 0 auto 8px;
+    }
+
+    .subtitle {
+      font-size: clamp(12px, 1.2vw, 16px);
+      color: #777;
+      margin-top: 5px;
+      font-weight: 400;
+    }
+
+    /* Optional soft gradient at bottom */
+    #disconnectedOverlay::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 30vh;
+      background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.05));
+      pointer-events: none;
+    }
+
+    /* 🔹 AFK Warning overlay */
+    #afkWarningOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1500;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(180deg, #f9f9f9 0%, #eaeaea 100%);
+      color: #444;
+      text-align: center;
+      opacity: 1;
+      transition: none;
+    }
+
+    #afkWarningOverlay.visible {
+      display: flex;
+      opacity: 1;
+    }
+
+    .afk-message {
+      margin-bottom: 30px;
+    }
+
+    .afk-message .line2 {
+      font-size: clamp(18px, 3vw, 30px);
+      font-weight: 300;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    #afkActionButton {
+      margin-top: .5rem;
+      margin-bottom: -2rem;
+      margin-right: auto;
+      margin-left: auto;
+      align-items: center;
+      justify-content: center;
+      padding: 0.8rem 1.8rem;
+      font-size: clamp(16px, 1.2vw, 22px);
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(to right, #8ccf4d, #36b4e5);
+      color: white;
+      cursor: pointer;
+      font-weight: 300;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #afkActionButton:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    #afkActionButton:active {
+      transform: scale(0.97);
+    }
+	
+/* 📱 Small screens: adjust layout separately for portrait vs landscape */
+
+/* Portrait phones */
+@media (max-width: 600px) and (orientation: portrait) {
+  #disconnectedOverlay {
+    justify-content: center; /* re-center vertically */
+    align-items: center;
+    padding-top: 0; /* remove offset */
+  }
+
+  .message {
+    margin-bottom: 50px;
+  }
+
+  .message .line1 {
+    font-size: clamp(14px, 4vw, 20px);
+  }
+
+  .message .line2 {
+    font-size: clamp(14px, 4vw, 20px);
+    margin-bottom: 16px;
+  }
+
+  #contactButton {
+    font-size: clamp(12px, 3.8vw, 18px);
+    padding: 0.6rem 1.4rem;
+	margin-bottom: -40px;
+  }
+
+  .divider {
+    margin: 35px 0 25px;
+  }
+
+  .logo img {
+    width: clamp(140px, 45vw, 200px);
+  }
+
+  .subtitle {
+    font-size: clamp(11px, 2.8vw, 14px);
+  }
+}
+
+/* 🔄 Landscape phones */
+@media (max-height: 500px) and (orientation: landscape) {
+  #disconnectedOverlay {
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 5vh;
+    overflow-y: auto;
+  }
+
+  .message {
+    margin-bottom: 30px;
+  }
+
+  #contactButton {
+    margin-top: 0.6rem;
+  }
+
+  .divider {
+    margin: 25px 0 15px;
+  }
+}
+
+
+  </style>
+</head>
+<body>
+
+  <div id="loadingScreen">
+    <video id="loadingVideo" autoplay muted playsinline loop tabindex="0" style="object-fit: cover;">
+      <source src="https://dashboard.fra1.digitaloceanspaces.com/1759402093295IntSy.mp4" type="video/mp4">
+    </video>
+    
+    <div id="loadingState"></div>
+	
+	<div id="passwordScreen">
+      <form id="passwordForm">
+        <input type="password" id="passwordInput" placeholder="Password" />
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="queueStatus"></div>
+
+  <div id="disconnectedOverlay">
+    <div class="message">
+      <p class="line1">Thank you for your interest in <strong>INTEGROMED</strong> services!</p>
+      <p class="line2">For feedback or commercial requests, please contact our team.</p>
+
+      <!-- Contact button below text -->
+      <button id="contactButton" onclick="window.location.href='mailto:sales@integromed.de'">
+        Sales@integromed.de
+      </button>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Replace the logo src below with your image link -->
+    <div class="logo">
+      <img src="https://raw.githubusercontent.com/MEHRWANE/EndPage/main/Logo Vector.png" alt="INTEGROMED Logo">
+    </div>
+  </div>
+
+  <div id="afkWarningOverlay">
+    <div class="afk-message">
+      <p class="line2">Your session will close soon due to inactivity.</p>
+
+      <!-- Action button -->
+      <button id="afkActionButton" onclick="hideAfkWarningWithHeartbeat()">
+        Continue
+      </button>
+    </div>
+  </div>
+
+  <iframe
+    id="streamPixelIframe"
+    src="https://share.streampixel.io/"
+    allow="autoplay; microphone; camera"
+    title="StreamPixel Stream"
+  ></iframe>
+
+  <script>
+
+      const projectId = "6852b6b11aaed6e7b6e26e20";
+    
+      document.getElementById("streamPixelIframe").src = `https://share.streampixel.io/${projectId}`;
+
+    const loadingScreen = document.getElementById('loadingScreen');
+    const loadingState = document.getElementById('loadingState');
+    const queueStatus = document.getElementById('queueStatus');
+    const loadingVideo = document.getElementById('loadingVideo');
+    const loadingImage = document.getElementById('loadingImage');
+    const passwordScreen = document.getElementById('passwordScreen');
+    const passwordForm = document.getElementById('passwordForm');
+    const passwordInput = document.getElementById('passwordInput');
+    const iframe = document.getElementById('streamPixelIframe');
+    const disconnectedOverlay = document.getElementById('disconnectedOverlay');
+    const afkWarningOverlay = document.getElementById('afkWarningOverlay');
+
+    loadingVideo.onerror = () => {
+      loadingImage.style.display = 'block';
+      loadingVideo.style.display = 'none';
+    };
+
+    function showLoadingText(message) {
+      loadingState.textContent = message;
+      loadingState.style.display = 'block';
+    }
+
+    function hideLoadingText() {
+      loadingState.textContent = '';
+      loadingState.style.display = 'none';
+    }
+
+    function showQueueMessage(message) {
+      // Extract number from queue message and multiply by 5 minutes
+      // Handle both formats: "queue-1" and "#1"
+      const numberMatch = message.match(/(?:queue-|#)(\d+)/);
+      if (numberMatch) {
+        const queueNumber = parseInt(numberMatch[1]);
+        const estimatedWaitMinutes = queueNumber * 15;
+        queueStatus.textContent = `Your queue position is ${queueNumber}. Estimated waiting time is ${estimatedWaitMinutes} minutes.`;
+      } else {
+        queueStatus.textContent = message;
+      }
+      queueStatus.style.display = 'block';
+    }
+
+    function hideQueueMessage() {
+      queueStatus.textContent = '';
+      queueStatus.style.display = 'none';
+    }
+
+
+  function showDisconnectedOverlay() {
+    // Make sure it's visible in the layout
+    disconnectedOverlay.style.display = 'flex';
+
+    // Use a short delay so CSS transition can animate opacity
+    requestAnimationFrame(() => {
+      disconnectedOverlay.classList.add('visible');
+    });
+  }
+
+    function hideDisconnectedOverlay() {
+      disconnectedOverlay.style.display = 'none';
+    }
+
+    function showAfkWarning() {
+      console.log('Showing AFK warning overlay');
+      // Make sure it's visible in the layout
+      afkWarningOverlay.style.display = 'flex';
+
+      // Use a short delay so CSS transition can animate opacity
+      requestAnimationFrame(() => {
+        afkWarningOverlay.classList.add('visible');
+        console.log('AFK overlay should now be visible');
+      });
+    }
+
+    function hideAfkWarning() {
+      afkWarningOverlay.style.display = 'none';
+      afkWarningOverlay.classList.remove('visible');
+    }
+
+    function hideAfkWarningWithHeartbeat() {
+      afkWarningOverlay.style.display = 'none';
+      afkWarningOverlay.classList.remove('visible');
+      
+      // Send heartbeat message to iframe only when user clicks Stay Active
+      iframe.contentWindow.postMessage({ message: 'heartbeat' }, '*');
+    }
+
+    passwordForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      iframe.contentWindow.postMessage({ message: 'test' }, '*');
+
+
+      const enteredPassword = passwordInput.value;
+    iframe.contentWindow.postMessage({
+        message: 'passwordSubmit',
+        password: enteredPassword,
+        projectId: projectId
+      }, '*');
+      
+
+       iframe.focus();
+
+    });
+	
+    window.addEventListener('message', (event) => {
+      if (!event.data || typeof event.data.value !== 'string') return;
+
+      const value = event.data.value;
+
+      if (value === 'showPassword') {
+        passwordScreen.style.display = 'flex';
+      } else if (value === 'hidePassword') {
+        passwordScreen.style.display = 'none';
+        loadingScreen.style.display = 'flex';
+       iframe.focus();
+      } else if (value === 'authenticating') {
+        hideLoadingText();
+        hideQueueMessage();
+      } else if (value === 'connecting') {
+        hideLoadingText();
+        hideQueueMessage();
+      } else if (value === 'Almost there, hold tight- awesomeness loading') {
+        hideLoadingText();
+        hideQueueMessage();
+      } else if (value === 'finalising') {
+        hideLoadingText();
+        hideQueueMessage();
+      } else if (value.includes("queue")) {
+        hideLoadingText();
+        showQueueMessage(value);
+      } else if (value === 'loadingComplete') {
+        hideLoadingText();
+        hideQueueMessage();
+        loadingScreen.style.display = 'none';
+       iframe.focus();
+      }
+      else if (value === 'afkWarning') {
+        console.log('Received afkWarning message');
+        hideLoadingText();
+        hideQueueMessage();
+        showAfkWarning();
+      } else if (value === 'afkAbort') {
+        console.log('Received afkAbort message');
+        hideAfkWarning();
+      }
+      else if (value === 'disconnected') {
+        hideLoadingText();
+        hideQueueMessage();
+        loadingScreen.style.display = 'none';
+		document.getElementById("contactButton").style.display = "block";
+        document.getElementById("contactButton").style.zIndex = "9999";
+		showDisconnectedOverlay();
+      }
+    });
+  </script>
+</body>
+</html>
