@@ -465,6 +465,33 @@ html, body {
       const projectId = "6852b6b11aaed6e7b6e26e20";
     
       document.getElementById("streamPixelIframe").src = `https://share.streampixel.io/${projectId}`;
+	  
+const streamIframe = document.getElementById('streamPixelIframe');
+	  
+	  streamIframe.addEventListener('load', () => {
+  // Wait until Unreal’s player script finishes
+  setTimeout(() => {
+    try {
+      const innerDoc = streamIframe.contentDocument || streamIframe.contentWindow.document;
+      const video = innerDoc?.querySelector('video');
+      if (video) {
+        // Force fixed 1080p video that auto-scales to fit container
+        video.style.position = 'absolute';
+        video.style.top = '50%';
+        video.style.left = '50%';
+        video.style.width = '1920px';
+        video.style.height = '1080px';
+        video.style.transform = 'translate(-50%, -50%)';
+        video.style.objectFit = 'contain';
+        video.style.maxWidth = '100%';
+        video.style.maxHeight = '100%';
+      }
+    } catch (err) {
+      console.warn('StreamPixel video resize override failed:', err);
+    }
+  }, 2000); // give the player 2s to init
+});
+That forci
 
     const loadingScreen = document.getElementById('loadingScreen');
     const loadingState = document.getElementById('loadingState');
@@ -623,6 +650,7 @@ html, body {
   </script>
 </body>
 </html>
+
 
 
 
