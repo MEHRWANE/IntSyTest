@@ -661,6 +661,7 @@ window.addEventListener('load', updateViewportHeight);
 updateViewportHeight();
 setTimeout(updateViewportHeight, 50);
 
+// ✅ Final version — fixes iPhone landscape bar, leaves Android untouched
 (function () {
   const root = document.documentElement;
   const stream = document.getElementById('streamPixelIframe');
@@ -669,7 +670,6 @@ setTimeout(updateViewportHeight, 50);
   const isSafari = /^((?!CriOS|FxiOS|OPiOS).)*Safari/i.test(ua);
 
   function computeBottomOverlay() {
-    if (!(isIOS && isSafari)) return 0; // ❗ No overlay compensation on Android/desktop
     const vv = window.visualViewport;
     const screenH = window.screen?.height || window.innerHeight;
     const visualH = vv ? vv.height : window.innerHeight;
@@ -680,33 +680,32 @@ setTimeout(updateViewportHeight, 50);
 
   function applyBottomCompensation() {
     const isLandscape = window.matchMedia('(orientation: landscape)').matches;
-    const overlay = (isIOS && isSafari && isLandscape) ? computeBottomOverlay() : 0;
 
-    // Update CSS var (harmless on Android/desktop)
-    root.style.setProperty('--safe-bottom', overlay + 'px');
-
-    // iOS-only adjustments
+    // ✅ Only run overlay correction on iPhone Safari in landscape
     if (isIOS && isSafari && isLandscape && stream) {
-      const scale = 0.975;
+      const overlay = computeBottomOverlay();
+      const scale = 0.97;
       stream.style.transform =
         `translate(-50%, calc(-50% - ${overlay * 0.12}px + 3px)) scale(${scale})`;
       document.body.style.paddingBottom =
-        `calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom, 0px))`;
+        `calc(env(safe-area-inset-bottom, 0px) + ${overlay}px)`;
+      root.style.setProperty('--safe-bottom', overlay + 'px');
     } else {
-      // Normal centered view everywhere else
+      // ✅ Reset everything everywhere else (Android, desktop, portrait)
       if (stream) stream.style.transform = 'translate(-50%, -50%) scale(1)';
       document.body.style.paddingBottom = '0';
+      root.style.setProperty('--safe-bottom', '0px');
     }
 
-    // Notify parent of true height (safe, but optional)
+    // Keep iframe height sync for parent
     if (window.parent && window.parent !== window) {
       const visibleHeight = window.visualViewport
         ? window.visualViewport.height
         : window.innerHeight;
-      window.parent.postMessage({
-        type: 'iframe-viewport-update',
-        height: visibleHeight - (overlay || 0)
-      }, '*');
+      window.parent.postMessage(
+        { type: 'iframe-viewport-update', height: visibleHeight },
+        '*'
+      );
     }
   }
 
@@ -723,6 +722,7 @@ setTimeout(updateViewportHeight, 50);
   </script>
 </body>
 </html>
+
 
 
 
