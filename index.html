@@ -19,6 +19,7 @@
       -webkit-text-size-adjust: none; /* Prevent font zoom on iOS */
 	   overscroll-behavior: none;
        touch-action: manipulation;
+	   padding-bottom: env(safe-area-inset-bottom);
     }
 
     /* fallback for browsers not supporting dvh */
@@ -41,6 +42,12 @@
       z-index: 1;
     }
 
+	  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+  #streamPixelIframe {
+    bottom: env(safe-area-inset-bottom);
+  }
+}
+	  
     /* ✅ Responsive scaling keeps 16:9 aspect and fits visible viewport */
     @media (max-aspect-ratio: 16/9) {
       #streamPixelIframe {
@@ -657,6 +664,7 @@ setTimeout(updateViewportHeight, 50);
   </script>
 </body>
 </html>
+
 
 
 
