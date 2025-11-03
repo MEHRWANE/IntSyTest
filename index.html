@@ -684,9 +684,9 @@ setTimeout(updateViewportHeight, 50);
     // ✅ Only run overlay correction on iPhone Safari in landscape
     if (isIOS && isSafari && isLandscape && stream) {
       const overlay = computeBottomOverlay();
-      const scale = 0.97;
+      const scale = 0.965;
       stream.style.transform =
-        `translate(-50%, calc(-50% - ${overlay * 0.12}px + 3px)) scale(${scale})`;
+        `translate(-50%, calc(-50% - ${overlay * 0.1}px + 3px)) scale(${scale})`;
       document.body.style.paddingBottom =
         `calc(env(safe-area-inset-bottom, 0px) + ${overlay}px)`;
       root.style.setProperty('--safe-bottom', overlay + 'px');
@@ -722,6 +722,7 @@ setTimeout(updateViewportHeight, 50);
   </script>
 </body>
 </html>
+
 
 
 
