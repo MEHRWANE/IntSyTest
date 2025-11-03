@@ -690,7 +690,7 @@ setTimeout(updateViewportHeight, 50);
     // very small upward nudge for visual balance — 25% of overlay only
     if (stream) {
       stream.style.transform = overlay > 0
-        ? `translate(-50%, calc(-50% - ${overlay * 0.25}px))`
+        ? `translate(-50%, calc(-50% - ${overlay * 0.15}px))`
         : `translate(-50%, -50%)`;
     }
 
@@ -721,6 +721,7 @@ setTimeout(updateViewportHeight, 50);
   </script>
 </body>
 </html>
+
 
 
 
