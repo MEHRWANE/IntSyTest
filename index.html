@@ -687,12 +687,22 @@ setTimeout(updateViewportHeight, 50);
     document.body.style.paddingBottom =
       `calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom, 0px))`;
 
+const ua = navigator.userAgent;
+const isIOS = /iP(ad|hone|od)/i.test(ua);
+const isSafari = /^((?!CriOS|FxiOS|OPiOS).)*Safari/i.test(ua);
+
 if (stream) {
-  const scale = overlay > 0 ? 0.985 : 1; // 1.5% smaller in landscape
-  stream.style.transform = overlay > 0
-    ? `translate(-50%, calc(-50% - ${overlay * 0.12}px + 3px)) scale(${scale})`
-    : `translate(-50%, -50%) scale(1)`;
+  // Only apply special transform when on iOS Safari in landscape
+  if (isIOS && isSafari && overlay > 0) {
+    const scale = 0.98; // ~1.5% smaller for safe visual margin
+    stream.style.transform =
+      `translate(-50%, calc(-50% - ${overlay * 0.12}px + 3px)) scale(${scale})`;
+  } else {
+    // Normal centering everywhere else
+    stream.style.transform = `translate(-50%, -50%) scale(1)`;
+  }
 }
+
 
     // notify parent of real height
     if (window.parent && window.parent !== window) {
@@ -721,6 +731,7 @@ if (stream) {
   </script>
 </body>
 </html>
+
 
 
 
