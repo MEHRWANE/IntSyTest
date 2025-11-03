@@ -661,57 +661,51 @@ window.addEventListener('load', updateViewportHeight);
 updateViewportHeight();
 setTimeout(updateViewportHeight, 50);
 
-// iOS landscape bottom-bar compensation (balanced version)
 (function () {
   const root = document.documentElement;
   const stream = document.getElementById('streamPixelIframe');
+  const ua = navigator.userAgent;
+  const isIOS = /iP(ad|hone|od)/i.test(ua);
+  const isSafari = /^((?!CriOS|FxiOS|OPiOS).)*Safari/i.test(ua);
 
   function computeBottomOverlay() {
+    if (!(isIOS && isSafari)) return 0; // ❗ No overlay compensation on Android/desktop
     const vv = window.visualViewport;
     const screenH = window.screen?.height || window.innerHeight;
     const visualH = vv ? vv.height : window.innerHeight;
     const offsetTop = vv ? vv.offsetTop || 0 : 0;
     let overlay = Math.max(0, screenH - visualH - offsetTop);
-    overlay = Math.min(overlay, 100);
-    return overlay;
+    return Math.min(overlay, 100);
   }
 
   function applyBottomCompensation() {
     const isLandscape = window.matchMedia('(orientation: landscape)').matches;
-    const overlay = isLandscape ? computeBottomOverlay() : 0;
+    const overlay = (isIOS && isSafari && isLandscape) ? computeBottomOverlay() : 0;
 
-    // apply CSS variable
+    // Update CSS var (harmless on Android/desktop)
     root.style.setProperty('--safe-bottom', overlay + 'px');
 
-    // body padding only, no over-shift
-    document.body.style.paddingBottom =
-      `calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom, 0px))`;
+    // iOS-only adjustments
+    if (isIOS && isSafari && isLandscape && stream) {
+      const scale = 0.985;
+      stream.style.transform =
+        `translate(-50%, calc(-50% - ${overlay * 0.12}px + 3px)) scale(${scale})`;
+      document.body.style.paddingBottom =
+        `calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom, 0px))`;
+    } else {
+      // Normal centered view everywhere else
+      if (stream) stream.style.transform = 'translate(-50%, -50%) scale(1)';
+      document.body.style.paddingBottom = '0';
+    }
 
-const ua = navigator.userAgent;
-const isIOS = /iP(ad|hone|od)/i.test(ua);
-const isSafari = /^((?!CriOS|FxiOS|OPiOS).)*Safari/i.test(ua);
-
-if (stream) {
-  // Only apply special transform when on iOS Safari in landscape
-  if (isIOS && isSafari && overlay > 0) {
-    const scale = 0.98; // ~1.5% smaller for safe visual margin
-    stream.style.transform =
-      `translate(-50%, calc(-50% - ${overlay * 0.12}px + 3px)) scale(${scale})`;
-  } else {
-    // Normal centering everywhere else
-    stream.style.transform = `translate(-50%, -50%) scale(1)`;
-  }
-}
-
-
-    // notify parent of real height
+    // Notify parent of true height (safe, but optional)
     if (window.parent && window.parent !== window) {
       const visibleHeight = window.visualViewport
         ? window.visualViewport.height
         : window.innerHeight;
       window.parent.postMessage({
         type: 'iframe-viewport-update',
-        height: visibleHeight - overlay
+        height: visibleHeight - (overlay || 0)
       }, '*');
     }
   }
@@ -726,11 +720,10 @@ if (stream) {
   setTimeout(applyBottomCompensation, 120);
 })();
 
-
-
   </script>
 </body>
 </html>
+
 
 
 
