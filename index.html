@@ -687,7 +687,7 @@ setTimeout(updateViewportHeight, 50);
 
     // iOS-only adjustments
     if (isIOS && isSafari && isLandscape && stream) {
-      const scale = 0.985;
+      const scale = 0.975;
       stream.style.transform =
         `translate(-50%, calc(-50% - ${overlay * 0.12}px + 3px)) scale(${scale})`;
       document.body.style.paddingBottom =
@@ -723,6 +723,7 @@ setTimeout(updateViewportHeight, 50);
   </script>
 </body>
 </html>
+
 
 
 
