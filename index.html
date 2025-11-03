@@ -2,19 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>IntSy Configurator</title>
   <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap" rel="stylesheet">
   
   <style>
-html, body {
-  width: 100dvw;
-  height: 100dvh;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+ html, body {
+      margin: 0;
+      padding: 0;
+      width: 100dvw;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: black;
       font-family: 'Open Sans', sans-serif;
+      -webkit-text-size-adjust: none; /* Prevent font zoom on iOS */
+    }
+
+    /* fallback for browsers not supporting dvh */
+    @supports not (height: 100dvh) {
+      html, body {
+        height: 100vh;
+      }
+    }
+
+    #streamPixelIframe {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 1920px;
+      height: 1080px;
+      transform: translate(-50%, -50%);
+      border: none;
+      background: black;
+      object-fit: contain;
+      z-index: 1;
+    }
+
+    /* ✅ Responsive scaling keeps 16:9 aspect and fits visible viewport */
+    @media (max-aspect-ratio: 16/9) {
+      #streamPixelIframe {
+        width: 100vw;
+        height: calc(100vw * 9 / 16);
+      }
+    }
+
+    @media (min-aspect-ratio: 16/9) {
+      #streamPixelIframe {
+        height: 100dvh;
+        width: calc(100dvh * 16 / 9);
+      }
     }
 
     #logo {
@@ -131,46 +168,6 @@ html, body {
 #passwordForm button:hover {
   background-color: #327dcd;
 }
-
-/* Base page reset */
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100dvw;
-  height: 100dvh;
-  overflow: hidden;
-  background-color: black; /* for clean letterboxing */
-}
-
-/* Main Pixel Streaming iframe */
-#streamPixelIframe {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 1920px;
-  height: 1080px;
-  transform: translate(-50%, -50%);
-  border: none;
-  background: black;
-  object-fit: contain;
-  z-index: 1;
-}
-
-/* Responsive scaling (keeps 16:9 ratio) */
-@media (max-aspect-ratio: 16/9) {
-  #streamPixelIframe {
-    width: 100vw;
-    height: calc(100vw * 9 / 16);
-  }
-}
-
-@media (min-aspect-ratio: 16/9) {
-  #streamPixelIframe {
-    height: 100vh;
-    width: calc(100vh * 16 / 9);
-  }
-}
-
 
    /* 🔹 End session overlay */
     #disconnectedOverlay {
@@ -467,31 +464,6 @@ html, body {
       document.getElementById("streamPixelIframe").src = `https://share.streampixel.io/${projectId}`;
 	  
 const streamIframe = document.getElementById('streamPixelIframe');
-	  
-	  streamIframe.addEventListener('load', () => {
-  // Wait until Unreal’s player script finishes
-  setTimeout(() => {
-    try {
-      const innerDoc = streamIframe.contentDocument || streamIframe.contentWindow.document;
-      const video = innerDoc?.querySelector('video');
-      if (video) {
-        // Force fixed 1080p video that auto-scales to fit container
-        video.style.position = 'absolute';
-        video.style.top = '50%';
-        video.style.left = '50%';
-        video.style.width = '1920px';
-        video.style.height = '1080px';
-        video.style.transform = 'translate(-50%, -50%)';
-        video.style.objectFit = 'contain';
-        video.style.maxWidth = '100%';
-        video.style.maxHeight = '100%';
-      }
-    } catch (err) {
-      console.warn('StreamPixel video resize override failed:', err);
-    }
-  }, 2000); // give the player 2s to init
-});
-
     const loadingScreen = document.getElementById('loadingScreen');
     const loadingState = document.getElementById('loadingState');
     const queueStatus = document.getElementById('queueStatus');
@@ -646,9 +618,22 @@ const streamIframe = document.getElementById('streamPixelIframe');
 		showDisconnectedOverlay();
       }
     });
+
+	  // ✅ Fix Safari / Chrome mobile URL bar viewport bug
+function updateViewportHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+  document.body.style.height = `calc(var(--vh, 1vh) * 100)`;
+}
+window.addEventListener('resize', updateViewportHeight);
+window.addEventListener('orientationchange', updateViewportHeight);
+window.addEventListener('load', updateViewportHeight);
+updateViewportHeight();
+
   </script>
 </body>
 </html>
+
 
 
 
