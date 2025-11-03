@@ -25,7 +25,7 @@
       -webkit-text-size-adjust: none; /* Prevent font zoom on iOS */
 	   overscroll-behavior: none;
        touch-action: manipulation;
-	   padding-bottom: env(safe-area-inset-bottom);
+	   padding-bottom: env(safe-area-inset-bottom, 0);
     }
 
     /* fallback for browsers not supporting dvh */
@@ -645,6 +645,20 @@ function updateViewportHeight() {
   document.documentElement.style.setProperty('--vh', `${vh}px`);
   document.body.style.height = `calc(var(--vh, 1vh) * 100)`;
 
+  // ✅ iOS-only bottom safe area compensation
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  if (isIOS) {
+    const stream = document.getElementById('streamPixelIframe');
+    const overlay = window.innerHeight - visibleHeight;
+
+    if (stream) {
+      // Small downward nudge + slight scale to account for Safari bottom bar
+      const scale = overlay > 0 ? 0.985 : 1;
+      const offsetY = overlay > 0 ? -(overlay * 0.12) + 2 : 0;
+      stream.style.transform = `translate(-50%, calc(-50% + ${offsetY}px)) scale(${scale})`;
+    }
+  }
+
   // 🔹 Notify parent (if embedded in iframe)
   if (window.parent && window.parent !== window) {
     window.parent.postMessage(
@@ -657,15 +671,16 @@ function updateViewportHeight() {
 // ✅ Listen for actual viewport changes — not scroll gestures
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', updateViewportHeight);
+  window.visualViewport.addEventListener('scroll', updateViewportHeight);
 }
 
 window.addEventListener('resize', updateViewportHeight);
 window.addEventListener('orientationchange', updateViewportHeight);
 window.addEventListener('load', updateViewportHeight);
 
+
 // Run twice to stabilize after Safari paint
 updateViewportHeight();
-setTimeout(updateViewportHeight, 50);
 
 // ✅ Final version — fixes iPhone landscape bar, leaves Android untouched
 (function () {
@@ -735,6 +750,7 @@ setTimeout(updateViewportHeight, 50);
   </script>
 </body>
 </html>
+
 
 
 
