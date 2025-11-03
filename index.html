@@ -661,55 +661,44 @@ window.addEventListener('load', updateViewportHeight);
 updateViewportHeight();
 setTimeout(updateViewportHeight, 50);
 
-	  // iOS landscape bottom-bar compensation (place after updateViewportHeight)
+// iOS landscape bottom-bar compensation (balanced version)
 (function () {
-  const isIOS = /iP(ad|hone|od)/i.test(navigator.userAgent);
-  const isSafari = /^((?!CriOS|FxiOS|OPiOS).)*Safari/i.test(navigator.userAgent);
   const root = document.documentElement;
   const stream = document.getElementById('streamPixelIframe');
 
   function computeBottomOverlay() {
-    // Prefer env() if available
-    const envInset = parseFloat(getComputedStyle(root).getPropertyValue('padding-bottom')) || 0;
-
-    // visualViewport is the most reliable for visible area
     const vv = window.visualViewport;
-    let visualH = vv ? vv.height : window.innerHeight;
-    // screen height in CSS px (note: orientation might swap width/height)
-    const screenH = window.screen && window.screen.height ? window.screen.height : window.innerHeight;
-
-    // offsetTop: when safari hides top bar it may shift visual viewport down
-    const offsetTop = vv ? (vv.offsetTop || 0) : 0;
-
-    // overlay estimate: portion of screen not in visual viewport
+    const screenH = window.screen?.height || window.innerHeight;
+    const visualH = vv ? vv.height : window.innerHeight;
+    const offsetTop = vv ? vv.offsetTop || 0 : 0;
     let overlay = Math.max(0, screenH - visualH - offsetTop);
-
-    // If overlay is tiny but envInset exists, prefer envInset
-    if (envInset > overlay) overlay = envInset;
-
-    // Clamp reasonable max (avoid huge values)
-    overlay = Math.min(overlay, 120);
-
-    return Math.round(overlay); // px
+    overlay = Math.min(overlay, 100);
+    return overlay;
   }
 
   function applyBottomCompensation() {
-    const overlay = computeBottomOverlay();
-    // expose CSS var
+    const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+    const overlay = isLandscape ? computeBottomOverlay() : 0;
+
+    // apply CSS variable
     root.style.setProperty('--safe-bottom', overlay + 'px');
 
-    // apply to body so fixed UI moves up
-    document.body.style.paddingBottom = `calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom, 0px))`;
+    // body padding only, no over-shift
+    document.body.style.paddingBottom =
+      `calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom, 0px))`;
 
-    // If you want to move the stream frame up a bit so its touch area is above the bar:
+    // very small upward nudge for visual balance — 30% of overlay only
     if (stream) {
-      // translate up by overlay/2 to keep it visually balanced; tweak as needed
-      stream.style.transform = `translate(-50%, calc(-50% - ${overlay / 2}px))`;
+      stream.style.transform = overlay > 0
+        ? `translate(-50%, calc(-50% - ${overlay * 0.3}px))`
+        : `translate(-50%, -50%)`;
     }
 
-    // Tell parent exact needed height for iframe if embedded (so parent can shrink iframe)
+    // notify parent of real height
     if (window.parent && window.parent !== window) {
-      const visibleHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const visibleHeight = window.visualViewport
+        ? window.visualViewport.height
+        : window.innerHeight;
       window.parent.postMessage({
         type: 'iframe-viewport-update',
         height: visibleHeight - overlay
@@ -717,23 +706,22 @@ setTimeout(updateViewportHeight, 50);
     }
   }
 
-  // Run in the same events you already have
   ['resize', 'orientationchange', 'load'].forEach(evt =>
     window.addEventListener(evt, applyBottomCompensation)
   );
-  if (window.visualViewport) {
+  if (window.visualViewport)
     window.visualViewport.addEventListener('resize', applyBottomCompensation);
-  }
 
-  // run twice to stabilize after paint
   applyBottomCompensation();
   setTimeout(applyBottomCompensation, 120);
 })();
 
 
+
   </script>
 </body>
 </html>
+
 
 
 
