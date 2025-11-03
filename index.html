@@ -687,10 +687,10 @@ setTimeout(updateViewportHeight, 50);
     document.body.style.paddingBottom =
       `calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom, 0px))`;
 
-    // very small upward nudge for visual balance — 30% of overlay only
+    // very small upward nudge for visual balance — 25% of overlay only
     if (stream) {
       stream.style.transform = overlay > 0
-        ? `translate(-50%, calc(-50% - ${overlay * 0.3}px))`
+        ? `translate(-50%, calc(-50% - ${overlay * 0.25}px))`
         : `translate(-50%, -50%)`;
     }
 
@@ -721,6 +721,7 @@ setTimeout(updateViewportHeight, 50);
   </script>
 </body>
 </html>
+
 
 
 
